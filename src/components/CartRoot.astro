@@ -39,12 +39,11 @@ const catalogData = Object.fromEntries(entries);
   set:html={stringifyForInlineScript(catalogData)}
 />
 
-{/* Screen-reader announcements for cart changes */}
-<p class="visually-hidden" role="status" aria-live="polite" data-cart-status></p>
-
 {/* ---- Cart drawer -------------------------------------------------- */}
 <dialog id="cart-dialog" class="drawer" aria-labelledby="cart-title">
   <div class="drawer__inner">
+    {/* Keep announcements inside the modal so they are not made inert while open. */}
+    <p class="visually-hidden" role="status" aria-live="polite" data-cart-status></p>
     <header class="drawer__head">
       <div>
         <h2 id="cart-title">Your selections</h2>

@@ -350,7 +350,7 @@ ol {
   top: 0;
   z-index: 40;
   background: color-mix(in srgb, var(--paper) 92%, transparent);
-  backdrop-filter: saturate(1.05) blur(6px);
+
   border-bottom: 1px solid var(--line);
 }
 .masthead__inner {

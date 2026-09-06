@@ -316,12 +316,12 @@ document.addEventListener('click', (event) => {
     const id = addBtn.dataset.addToCart ?? '';
     if (!isValidId(id)) return;
     commit(addToCart(cart, id, 1));
+    openCart();
     announce(
       `Added ${catalog[id]?.name ?? 'item'} to your cart. Cart now has ${itemsLabel(
         cartCount(cart),
       )}.`,
     );
-    openCart();
     return;
   }
 
@@ -329,6 +329,7 @@ document.addEventListener('click', (event) => {
   if (incBtn) {
     const id = incBtn.dataset.cartInc ?? '';
     commit(setQuantity(cart, id, quantityOf(id) + 1), `[data-cart-inc="${cssEscape(id)}"]`);
+    announce(`Quantity of ${catalog[id]?.name ?? 'item'} is ${quantityOf(id)}.`);
     return;
   }
 
@@ -339,6 +340,11 @@ document.addEventListener('click', (event) => {
     commit(
       setQuantity(cart, id, nextQty),
       nextQty > 0 ? `[data-cart-dec="${cssEscape(id)}"]` : '[data-cart-close]',
+    );
+    announce(
+      nextQty > 0
+        ? `Quantity of ${catalog[id]?.name ?? 'item'} is ${quantityOf(id)}.`
+        : `Removed ${catalog[id]?.name ?? 'item'} from your cart.`,
     );
     return;
   }
@@ -360,9 +366,15 @@ document.addEventListener('change', (event) => {
   if (!input) return;
   const id = input.dataset.cartQty ?? '';
   const parsed = Number.parseInt(input.value, 10);
+  const nextQuantity = Number.isFinite(parsed) ? parsed : 0;
   commit(
-    setQuantity(cart, id, Number.isFinite(parsed) ? parsed : 0),
+    setQuantity(cart, id, nextQuantity),
     `[data-cart-qty="${cssEscape(id)}"]`,
+  );
+  announce(
+    nextQuantity > 0
+      ? `Quantity of ${catalog[id]?.name ?? 'item'} is ${quantityOf(id)}.`
+      : `Removed ${catalog[id]?.name ?? 'item'} from your cart.`,
   );
 });
 

@@ -79,5 +79,8 @@ test.describe('keyboard dialog behaviour', () => {
     await expect(page.locator('[data-cart-empty]')).toBeVisible();
     expect(await activeInDialog(page, 'cart-dialog')).toBe(true);
     await expect(page.locator('#cart-dialog [data-cart-close]').first()).toBeFocused();
+    await expect(page.locator('#cart-dialog [data-cart-status]')).toHaveText(
+      'Removed The Universal from your cart.',
+    );
   });
 });

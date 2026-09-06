@@ -22,12 +22,18 @@ test.describe('cart flow', () => {
     await expect(badge).toHaveAttribute('data-empty', 'false');
     await expect(page.locator('[data-cart-lines] .cart-line')).toHaveCount(1);
     await expect(page.locator('[data-cart-subtotal]')).toHaveText('$68.00');
+    await expect(drawer.locator('[data-cart-status]')).toHaveText(
+      'Added The Universal to your cart. Cart now has 1 item.',
+    );
 
     // Increase to 2 via the stepper.
     await page.locator('[data-cart-inc="universal"]').click();
     await expect(page.locator('[data-cart-qty="universal"]')).toHaveValue('2');
     await expect(page.locator('[data-cart-subtotal]')).toHaveText('$136.00');
     await expect(page.locator('.cart-line__price')).toHaveText('$136.00');
+    await expect(drawer.locator('[data-cart-status]')).toHaveText(
+      'Quantity of The Universal is 2.',
+    );
 
     // Type an exact quantity.
     await page.locator('[data-cart-qty="universal"]').fill('3');
@@ -51,6 +57,9 @@ test.describe('cart flow', () => {
     await page.locator('[data-cart-remove="burgundy"]').click();
     await expect(page.locator('[data-cart-lines] .cart-line')).toHaveCount(1);
     await expect(badge).toHaveText('2');
+    await expect(drawer.locator('[data-cart-status]')).toHaveText(
+      'Removed The Burgundy from your cart.',
+    );
 
     // Persistence: reload and confirm the cart survived.
     await page.reload();

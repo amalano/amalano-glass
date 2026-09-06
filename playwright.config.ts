@@ -1,7 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-
-const PORT = 4321;
-const BASE_URL = `http://localhost:${PORT}`;
+import { PREVIEW_URL } from './e2e/server';
 
 // Astro 7's `preview` runs as a managed background daemon, so it can't be driven
 // by Playwright's foreground `webServer`. Instead, global setup builds the site
@@ -18,7 +16,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: BASE_URL,
+    baseURL: PREVIEW_URL,
     trace: 'on-first-retry',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],

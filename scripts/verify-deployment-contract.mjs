@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { relative, resolve, sep } from 'node:path';
 
 function option(name, fallback) {
   const prefix = `--${name}=`;
@@ -12,13 +12,17 @@ const rawBase = option('base', process.env.SITE_BASE ?? '/');
 const cnameExpectation = option('cname', 'ignore');
 
 if (!origin) throw new Error('Expected --origin or SITE_ORIGIN');
-const base = `/${rawBase.replace(/^\/+|\/+$/g, '')}${rawBase === '/' ? '' : '/'}`;
+if (!['ignore', 'present', 'absent'].includes(cnameExpectation)) {
+  throw new Error('Expected --cname=ignore, present, or absent');
+}
+
+const baseName = rawBase.replace(/^\/+|\/+$/g, '');
+const base = baseName ? `/${baseName}/` : '/';
 const publicRoot = new URL(base, origin).toString();
 const root = resolve('dist');
-const html = readFileSync(resolve(root, 'index.html'), 'utf8');
-const robots = readFileSync(resolve(root, 'robots.txt'), 'utf8');
-const sitemapIndex = readFileSync(resolve(root, 'sitemap-index.xml'), 'utf8');
-const sitemap = readFileSync(resolve(root, 'sitemap-0.xml'), 'utf8');
+const forbiddenOrigin = origin.includes('github.io')
+  ? 'https://glasses.amalano.dev'
+  : 'https://amalano.github.io';
 
 function requireText(label, content, expected) {
   if (!content.includes(expected)) {
@@ -26,18 +30,67 @@ function requireText(label, content, expected) {
   }
 }
 
-requireText('canonical metadata', html, `<link rel="canonical" href="${publicRoot}">`);
-requireText('OpenGraph URL', html, `<meta property="og:url" content="${publicRoot}">`);
-requireText('asset base', html, `${base}_astro/`);
+function filesUnder(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = resolve(directory, entry.name);
+    return entry.isDirectory() ? filesUnder(path) : [path];
+  });
+}
+
+function routeForHtml(file) {
+  const path = relative(root, file).split(sep).join('/');
+  if (path === 'index.html') return '';
+  if (path === '404.html') return '404/';
+  if (path.endsWith('/index.html')) return `${path.slice(0, -'/index.html'.length)}/`;
+  return path;
+}
+
+function assertLocalTargetExists(value, sourceFile) {
+  if (!value.startsWith(base)) return;
+  const withoutSuffix = value.slice(base.length).split(/[?#]/, 1)[0];
+  if (!withoutSuffix) return;
+
+  const target = resolve(root, withoutSuffix);
+  const candidates = [target, resolve(target, 'index.html')];
+  if (!candidates.some(existsSync)) {
+    throw new Error(`${relative(root, sourceFile)} references missing local target ${value}`);
+  }
+}
+
+const htmlFiles = filesUnder(root).filter((file) => file.endsWith('.html'));
+if (htmlFiles.length === 0) throw new Error('No generated HTML files found');
+
+for (const file of htmlFiles) {
+  const label = relative(root, file).split(sep).join('/');
+  const content = readFileSync(file, 'utf8');
+  const expectedUrl = new URL(routeForHtml(file), publicRoot).toString();
+
+  requireText(`${label} canonical`, content, `<link rel="canonical" href="${expectedUrl}">`);
+  requireText(`${label} OpenGraph URL`, content, `<meta property="og:url" content="${expectedUrl}">`);
+  if (content.includes(forbiddenOrigin)) {
+    throw new Error(`${label} leaks inactive origin ${forbiddenOrigin}`);
+  }
+
+  for (const match of content.matchAll(/(?:href|src)="([^"]+)"/g)) {
+    const value = match[1];
+    if (!value.startsWith('/')) continue;
+    if (!value.startsWith(base)) {
+      throw new Error(`${label} contains root-relative URL outside base ${base}: ${value}`);
+    }
+    assertLocalTargetExists(value, file);
+  }
+}
+
+const indexHtml = readFileSync(resolve(root, 'index.html'), 'utf8');
+requireText('homepage asset base', indexHtml, `${base}_astro/`);
+
+const robots = readFileSync(resolve(root, 'robots.txt'), 'utf8');
+const sitemapIndex = readFileSync(resolve(root, 'sitemap-index.xml'), 'utf8');
+const sitemap = readFileSync(resolve(root, 'sitemap-0.xml'), 'utf8');
 requireText('robots sitemap', robots, `Sitemap: ${publicRoot}sitemap-index.xml`);
 requireText('sitemap index', sitemapIndex, `${publicRoot}sitemap-0.xml`);
-requireText('sitemap pages', sitemap, publicRoot);
 
-const forbiddenOrigin = origin.includes('github.io')
-  ? 'https://glasses.amalano.dev'
-  : 'https://amalano.github.io';
 for (const [label, content] of [
-  ['HTML', html],
   ['robots', robots],
   ['sitemap index', sitemapIndex],
   ['sitemap', sitemap],
@@ -47,9 +100,22 @@ for (const [label, content] of [
   }
 }
 
-const cnameExists = existsSync(resolve(root, 'CNAME'));
-if (cnameExpectation === 'present' && !cnameExists) {
-  throw new Error('Expected dist/CNAME to be present');
+const sitemapLocations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+if (sitemapLocations.length === 0) throw new Error('Sitemap has no page locations');
+for (const location of sitemapLocations) {
+  if (!location.startsWith(publicRoot)) {
+    throw new Error(`Sitemap location is outside public root ${publicRoot}: ${location}`);
+  }
+}
+
+const cnamePath = resolve(root, 'CNAME');
+const cnameExists = existsSync(cnamePath);
+if (cnameExpectation === 'present') {
+  if (!cnameExists) throw new Error('Expected dist/CNAME to be present');
+  const cname = readFileSync(cnamePath, 'utf8').trim();
+  if (cname !== 'glasses.amalano.dev') {
+    throw new Error(`Unexpected dist/CNAME value ${JSON.stringify(cname)}`);
+  }
 }
 if (cnameExpectation === 'absent' && cnameExists) {
   throw new Error('Expected dist/CNAME to be absent');
@@ -61,6 +127,8 @@ console.log(
     origin,
     base,
     publicRoot,
+    htmlFiles: htmlFiles.length,
+    sitemapPages: sitemapLocations.length,
     cname: cnameExists ? 'present' : 'absent',
   }),
 );

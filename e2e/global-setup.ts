@@ -1,7 +1,5 @@
-import { execSync, spawnSync } from 'node:child_process';
-
-const PORT = process.env.PW_PORT ?? '4321';
-const URL = `http://localhost:${PORT}/`;
+import { execFileSync, spawnSync } from 'node:child_process';
+import { PREVIEW_PORT, PREVIEW_URL } from './server';
 
 async function waitForServer(url: string, timeoutMs: number): Promise<void> {
   const start = Date.now();
@@ -21,11 +19,15 @@ async function waitForServer(url: string, timeoutMs: number): Promise<void> {
 
 export default async function globalSetup(): Promise<void> {
   // Produce a fresh, optimized production build.
-  execSync('npm run build', { stdio: 'inherit' });
+  execFileSync('npm', ['run', 'build'], { stdio: 'inherit' });
 
   // Clear any stale daemon, then start the preview server (auto-daemonizes).
   spawnSync('npx', ['astro', 'preview', 'stop'], { stdio: 'ignore' });
-  execSync(`npx astro preview --port ${PORT} --background`, { stdio: 'inherit' });
+  execFileSync(
+    'npx',
+    ['astro', 'preview', '--port', String(PREVIEW_PORT), '--background'],
+    { stdio: 'inherit' },
+  );
 
-  await waitForServer(URL, 30_000);
+  await waitForServer(`${PREVIEW_URL}/`, 30_000);
 }

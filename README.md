@@ -84,20 +84,37 @@ The first e2e run needs the browser: `npx playwright install chromium`.
   canonical, OpenGraph, JSON-LD, sitemap, and generated `robots.txt` URLs aligned
   with the URL that actually serves the site.
 - A `CNAME` file inside an Actions artifact does **not** configure a custom
-  domain by itself. After Cloudflare DNS has a CNAME from `glasses` to
-  `amalano.github.io`, associate the hostname in GitHub Pages, then activate the
-  production build and rerun the verified workflow:
+  domain by itself. Follow this order to avoid the subdomain-takeover window
+  described in GitHub's [custom-domain security
+  guidance](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#securing-your-custom-domain):
+
+  1. In the `amalano` account's **Settings → Pages**, start verification of the
+     parent domain `amalano.dev`. Publish the exact GitHub-provided TXT challenge
+     in Cloudflare, complete verification, and retain the TXT record. See
+     [Verifying your custom domain for GitHub
+     Pages](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages).
+  2. Claim `glasses.amalano.dev` on this repository **before** publishing its
+     CNAME:
 
   ```sh
   gh api --method PUT repos/amalano/amalano-glass/pages \
     -f cname=glasses.amalano.dev
-  gh variable set CUSTOM_DOMAIN_ACTIVE --repo amalano/amalano-glass --body true
-  gh workflow run ci.yml --repo amalano/amalano-glass --ref main
   ```
 
-  Verify the Pages API reports `glasses.amalano.dev`, wait for DNS/TLS, then
-  fetch `https://glasses.amalano.dev/` and its assets before calling the domain
-  active. The root build retains `public/CNAME` as an additional declaration,
-  not as the configuration mechanism.
+  3. Only after GitHub reports that repository association, publish the
+     Cloudflare CNAME `glasses` → `amalano.github.io`.
+  4. Verify DNS ownership, wait for GitHub's certificate, and require the Pages
+     API to report both `cname: glasses.amalano.dev` and `https_enforced: true`.
+  5. Then activate the root build and rerun its full same-SHA gate:
+
+     ```sh
+     gh variable set CUSTOM_DOMAIN_ACTIVE --repo amalano/amalano-glass --body true
+     gh workflow run ci.yml --repo amalano/amalano-glass --ref main
+     ```
+
+  Fetch `https://glasses.amalano.dev/`, every local asset, `robots.txt`, and the
+  sitemap before calling the domain active. The root build retains
+  `public/CNAME` as an additional declaration, not as the configuration
+  mechanism.
 
 The integrator owns exact-epoch review and publication.
