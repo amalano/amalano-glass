@@ -24,6 +24,7 @@ test.describe('browse & honest framing', () => {
 
     await expect(page.locator('.prelaunch')).toContainText('Pre-launch');
     await expect(page.locator('#preview')).toContainText("what it would take to open");
+    await expect(page.locator('#preview')).toContainText('policies spell out the same boundaries');
 
     // Every product is labelled a draft concept.
     await expect(page.locator('.product-card__draft').first()).toHaveText('Draft concept');
@@ -69,12 +70,14 @@ test.describe('browse & honest framing', () => {
     await page.goto('/about/');
     await expect(page.locator('h1')).toContainText('kept honest');
     await expect(page.locator('main')).toContainText('AI-generated concept photography');
+    await expect(page.locator('main')).toContainText('pre-launch note lists the full set');
 
     await page.goto('/policies/');
     await expect(page.locator('h1')).toContainText('none in effect yet');
     await expect(page.locator('.policy-status')).toContainText('not in effect');
     await expect(page.locator('main')).toContainText('No application or ad cookie is set');
     await expect(page.locator('main')).toContainText('GitHub Pages logs and stores visitor IP addresses');
+    await expect(page.locator('main')).toContainText('see the about page and the pre-launch note');
   });
 
   test('404 page is served for unknown routes', async ({ page }) => {
