@@ -1,0 +1,181 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { products, type ProductId } from '../data/catalog';
+import { heroImage } from '../data/product-images';
+import { ACTIVATION_REQUIREMENTS, SITE } from '../data/site';
+import { href } from '../lib/url';
+
+// Short "reach for it when…" guidance per shape, used in the comparison table.
+const guidance: Record<ProductId, string> = {
+  universal:
+    'You want one glass for most of the week and a table that stays uncluttered.',
+  burgundy: 'The bottle deserves room to open and the evening is in no hurry.',
+  coupe: 'The drink is a small ceremony — a toast, an aperitif, something stirred.',
+};
+
+const intent = [
+  {
+    title: 'Materials we can name',
+    body: 'We intend to specify the exact glass and finish, and to verify anything we say about it before we print it. Today we make no material, safety, or care claims — none are earned yet.',
+  },
+  {
+    title: 'Drawn to be used',
+    body: 'The direction is stemware for real weeknights, not a cabinet display. Real dimensions, capacities, and care guidance get published once they are tested — not a moment sooner.',
+  },
+  {
+    title: 'Commerce, when it is honest',
+    body: 'When ordering opens it will run on a registered entity, real inventory, a written returns policy, and a vetted payment provider. Until every piece is real, nothing is for sale.',
+  },
+];
+---
+
+<BaseLayout isHome>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero__grid">
+      <div class="hero__intro">
+        <p class="overline hero__eyebrow">A stemware concept · {SITE.domain}</p>
+        <h1 class="hero__title">
+          A considered set of three. <em>Drawn, not yet made.</em>
+        </h1>
+        <p class="hero__lede">
+          {SITE.name} is a design study for a small family of stemware — the
+          Universal, the Burgundy, and the Coupe. Explore the shapes and the
+          thinking behind them. Nothing here can be ordered yet.
+        </p>
+        <div class="hero__actions">
+          <a class="btn" href="#catalog">Explore the set</a>
+          <a class="textlink" href="#intent">
+            Read the intent <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+
+      <figure class="hero__figure">
+        <Image
+          src={heroImage}
+          alt="Concept photograph: the Universal, Burgundy, and Coupe glasses arranged on a warm travertine ledge in raking daylight."
+          widths={[560, 840, 1120, 1672]}
+          sizes="(min-width: 48rem) 46vw, 92vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <figcaption class="hero__caption">
+          Original, AI-generated concept photography — a design study, not a
+          photograph of finished products.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- Catalog -->
+  <section class="section" id="catalog" aria-labelledby="catalog-heading">
+    <div class="container">
+      <div class="section-head">
+        <p class="overline">The set</p>
+        <h2 id="catalog-heading">Three shapes, chosen on purpose</h2>
+        <p>
+          Each entry below is a draft merchandising hypothesis: a proposed
+          shape at a proposed price. Prices are placeholders, and no set is in
+          production.
+        </p>
+      </div>
+
+      <div class="product-grid">
+        {products.map((product, i) => <ProductCard product={product} index={i} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Shapes & occasions -->
+  <section class="section" id="choosing" aria-labelledby="choosing-heading">
+    <div class="container">
+      <div class="section-head">
+        <p class="overline">Shapes &amp; occasions</p>
+        <h2 id="choosing-heading">Choosing by shape and occasion</h2>
+        <p>
+          A quick way to think about which shape does what. This is guidance on
+          form and use, not a performance claim.
+        </p>
+      </div>
+
+      <div class="compare">
+        <table>
+          <caption>How the three shapes compare — draft guidance.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Glass</th>
+              <th scope="col">Shape</th>
+              <th scope="col">Best for</th>
+              <th scope="col">Reach for it when…</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              products.map((p) => (
+                <tr>
+                  <th scope="row">{p.name}</th>
+                  <td class="shape-word">{p.shape}</td>
+                  <td>{p.bestFor.join(', ')}</td>
+                  <td>{guidance[p.id]}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Intent / principles -->
+  <section class="section" id="intent" aria-labelledby="intent-heading">
+    <div class="container">
+      <div class="section-head">
+        <p class="overline">Intent</p>
+        <h2 id="intent-heading">What we're setting out to do</h2>
+        <p>
+          Principles, framed as intent rather than promises. If it isn't
+          verified, we don't claim it.
+        </p>
+      </div>
+
+      <div class="intent-grid">
+        {
+          intent.map((item) => (
+            <div class="intent-item">
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Pre-launch disclosure -->
+  <section class="section" id="preview" aria-labelledby="preview-heading">
+    <div class="container">
+      <div class="disclosure">
+        <p class="overline">Pre-launch note</p>
+        <h2 id="preview-heading">What this is — and what it would take to open</h2>
+        <p>
+          This site is a transparent concept for {SITE.domain}. The catalog,
+          prices, and photography are design work. The cart runs entirely in
+          your browser; it never sends data anywhere, and it can't place an
+          order. Before checkout could be switched on, all of the following
+          would need to be real:
+        </p>
+        <ul class="checklist">
+          {ACTIVATION_REQUIREMENTS.map((item) => <li>{item}</li>)}
+        </ul>
+        <p style="margin-top:1.5rem">
+          More on the thinking is on the <a href={href('/about/')}>about page</a>,
+          and the draft (not-yet-active) <a href={href('/policies/')}>policies</a>
+          spell out the same boundaries.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

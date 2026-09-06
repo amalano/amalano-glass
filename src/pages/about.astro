@@ -1,0 +1,85 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+import { href } from '../lib/url';
+---
+
+<BaseLayout
+  title="About the concept"
+  description="Amalano Glass is a pre-launch design study — what it is, what's real, and what isn't yet."
+>
+  <section class="section">
+    <div class="container container--narrow">
+      <p class="overline">About</p>
+      <h1 style="font-size:var(--text-2xl);margin:0.6rem 0 1.25rem">
+        A concept, kept honest
+      </h1>
+
+      <div class="prose">
+        <p class="lede">
+          {SITE.name} is a design study — a way to explore what a small, careful
+          line of stemware could look like before a single piece is made. It is
+          deliberately public and deliberately unfinished.
+        </p>
+
+        <h2>What this is</h2>
+        <p>
+          The site imagines three glasses — the Universal, the Burgundy, and the
+          Coupe — and the reasoning behind choosing just three. You can browse
+          the shapes, read the intent, and even build a set in a local cart to
+          see how it feels. It is a concept for the address
+          <strong>{SITE.domain}</strong>, nothing more.
+        </p>
+
+        <h2>What's real, and what isn't</h2>
+        <ul>
+          <li>
+            <strong>The imagery is concept work.</strong> Every photograph is
+            original, AI-generated concept photography made for this study — not
+            a photograph of a finished, purchasable product.
+          </li>
+          <li>
+            <strong>The catalog is a draft.</strong> Names, shapes, and prices
+            are merchandising hypotheses. Prices are placeholders; nothing is in
+            production or in stock.
+          </li>
+          <li>
+            <strong>The cart is local.</strong> It lives in your browser via
+            <code>localStorage</code>. It doesn't sync, doesn't track you, and
+            can't send an order.
+          </li>
+          <li>
+            <strong>No claims we can't back.</strong> You won't find promises
+            about materials, safety, care, sustainability, warranties, or
+            shipping. Those require verification we don't have yet, so we don't
+            make them.
+          </li>
+        </ul>
+
+        <h2>Why leave it unfinished in public</h2>
+        <p>
+          Because the honest version is more useful than a convincing one. A
+          concept that pretends to be a store would have to invent reviews,
+          inventory, and guarantees. This one states plainly where it stops —
+          and exactly what it would take to go further.
+        </p>
+
+        <h2>What would make it a shop</h2>
+        <p>
+          Finalized products with verified specifications, real inventory, a
+          registered legal entity with contact details, a written
+          fulfillment-and-returns policy, and a vetted payment provider. The
+          <a href={href('/#preview')}>pre-launch note</a> lists the full set, and
+          the <a href={href('/policies/')}>draft policies</a> describe the
+          boundaries that are in force today: no sales, no data collection.
+        </p>
+
+        <p>
+          Curious where it goes? For now, explore
+          <a href={href('/')}>the set</a> and take the shapes for what they are —
+          a considered starting point.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

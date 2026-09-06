@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { href } from '../lib/url';
+---
+
+<BaseLayout title="Page not found" noindex>
+  <section class="section">
+    <div class="container container--narrow" style="text-align:center">
+      <p class="overline">404</p>
+      <h1 style="font-size:var(--text-2xl);margin:0.6rem 0 1rem">
+        This page isn't set
+      </h1>
+      <p class="lede" style="margin-inline:auto">
+        The address you followed doesn't exist here. That's fitting for a
+        concept still being drawn — but let's get you back to the set.
+      </p>
+      <div
+        style="margin-top:2rem;display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center"
+      >
+        <a class="btn" href={href('/')}>Back to the set</a>
+        <a class="btn btn--ghost" href={href('/about/')}>About the concept</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

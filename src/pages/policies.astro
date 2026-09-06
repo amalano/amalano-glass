@@ -1,0 +1,85 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+import { href } from '../lib/url';
+---
+
+<BaseLayout
+  title="Draft policies"
+  description="Draft, not-yet-active policies for the Amalano Glass concept. No sales and no data collection are in effect."
+>
+  <section class="section">
+    <div class="container container--narrow">
+      <p class="overline">Policies</p>
+      <h1 style="font-size:var(--text-2xl);margin:0.6rem 0 1.25rem">
+        Draft policies — none in effect yet
+      </h1>
+
+      <div class="prose">
+        <p class="lede">
+          {SITE.name} is a pre-launch concept. There is no store to transact
+          with, so there are no active policies. The notes below are drafts that
+          describe intent only. They are not offers, terms, or guarantees, and
+          they take effect only if and when ordering is switched on.
+        </p>
+
+        <p>
+          <span class="policy-status">Status: draft — not in effect</span>
+        </p>
+
+        <h2>Sales &amp; orders</h2>
+        <p>
+          Nothing on this site can be purchased. The cart is a local planning
+          tool; there is no checkout, no payment processing, and no way to place
+          an order. Any prices shown are placeholder hypotheses, not offers.
+        </p>
+
+        <h2>Privacy &amp; data</h2>
+        <p>
+          We don't collect personal data. There is no account system, no
+          newsletter signup, no contact form, and no payment step — so there is
+          nothing to submit. There is also <strong>no analytics, no advertising,
+          and no tracking</strong>, which is why you'll see no cookie banner:
+          there are no cookies to consent to. Your cart is stored only in your
+          own browser and never leaves your device.
+        </p>
+
+        <h2>Shipping &amp; fulfillment</h2>
+        <p>
+          Not established. Because there is no inventory and no order flow, we
+          make no claims about shipping methods, timeframes, regions, or costs.
+          A real fulfillment policy is one of the things that must exist before
+          ordering could open.
+        </p>
+
+        <h2>Returns &amp; exchanges</h2>
+        <p>
+          Not established. With nothing sold, there is nothing to return. A
+          written returns-and-exchanges policy would be published alongside a
+          real product before any sale.
+        </p>
+
+        <h2>Product claims</h2>
+        <p>
+          We deliberately make no claims about materials, safety, care,
+          durability, sustainability, or warranties. Such statements require
+          testing and verification we don't yet have. When there is evidence, we
+          will say so plainly — and not before.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+          Support and legal contact details will be published once a registered
+          entity stands behind the store. They are intentionally not listed yet,
+          because inventing them would be the opposite of the point.
+        </p>
+
+        <p>
+          For the bigger picture, see the
+          <a href={href('/about/')}>about page</a> and the
+          <a href={href('/#preview')}>pre-launch note</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

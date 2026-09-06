@@ -1,0 +1,54 @@
+---
+import { Image } from 'astro:assets';
+import type { Product } from '../data/catalog';
+import { productImages } from '../data/product-images';
+import { formatPrice } from '../lib/format';
+
+interface Props {
+  product: Product;
+  /** Kept for stable call-site ordering; all three product images load eagerly. */
+  index?: number;
+}
+
+const { product } = Astro.props;
+const image = productImages[product.id];
+---
+
+<article class="product-card">
+  <div class="product-card__media">
+    <span class="product-card__draft">Draft concept</span>
+    <Image
+      src={image}
+      alt={product.alt}
+      widths={[240, 360, 480, 640]}
+      sizes="(min-width: 48rem) 23rem, 90vw"
+      loading="eager"
+    />
+  </div>
+
+  <div class="product-card__body">
+    <div class="product-card__head">
+      <div>
+        <h3 class="product-card__name">{product.name}</h3>
+        <p class="product-card__shape">{product.shape}</p>
+      </div>
+      <p class="product-card__price">
+        <b>{formatPrice(product.priceCents, product.currency)}</b>
+        <span>Draft · set of {product.setSize}</span>
+      </p>
+    </div>
+
+    <p class="product-card__intent">{product.form}</p>
+
+    <ul class="product-card__tags" aria-label="Best for">
+      {product.bestFor.slice(0, 3).map((tag) => <li class="product-card__tag">{tag}</li>)}
+    </ul>
+
+    <div class="product-card__foot">
+      <button type="button" class="btn btn--sm js-add" data-add-to-cart={product.id}>
+        Add to cart
+      </button>
+      <span class="no-js-note">Enable JavaScript to plan a set.</span>
+    </div>
+  </div>
+</article>

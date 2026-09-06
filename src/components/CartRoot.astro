@@ -1,0 +1,140 @@
+---
+import { getImage } from 'astro:assets';
+import { products } from '../data/catalog';
+import { productImages } from '../data/product-images';
+import { formatPrice } from '../lib/format';
+import { ACTIVATION_REQUIREMENTS } from '../data/site';
+
+// Build a small, optimized display payload for the client script. Only the data
+// the cart needs is exposed — no build-time deps leak into the browser bundle.
+const entries = await Promise.all(
+  products.map(async (p) => {
+    const thumb = await getImage({
+      src: productImages[p.id],
+      width: 160,
+      format: 'webp',
+    });
+    return [
+      p.id,
+      {
+        name: p.name,
+        shape: p.shape,
+        unitCents: p.priceCents,
+        unitLabel: formatPrice(p.priceCents, p.currency),
+        img: thumb.src,
+        alt: p.alt,
+      },
+    ] as const;
+  }),
+);
+const catalogData = Object.fromEntries(entries);
+---
+
+{/* Display data for the cart, consumed by src/scripts/cart-ui.ts */}
+<script
+  type="application/json"
+  id="cart-catalog"
+  is:inline
+  set:html={JSON.stringify(catalogData)}
+/>
+
+{/* Screen-reader announcements for cart changes */}
+<p class="visually-hidden" role="status" aria-live="polite" data-cart-status></p>
+
+{/* ---- Cart drawer -------------------------------------------------- */}
+<dialog id="cart-dialog" class="drawer" aria-labelledby="cart-title">
+  <div class="drawer__inner">
+    <header class="drawer__head">
+      <div>
+        <h2 id="cart-title">Your selections</h2>
+        <p>A local concept planner — nothing is ordered or reserved.</p>
+      </div>
+      <button type="button" class="icon-button" data-cart-close aria-label="Close cart">
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    </header>
+
+    <div class="drawer__body">
+      <div class="cart-empty" data-cart-empty>
+        <p>Nothing selected yet</p>
+        <p>Add a set to sketch out a table. It stays on this device only.</p>
+      </div>
+      <ul class="cart-lines" data-cart-lines hidden></ul>
+    </div>
+
+    <footer class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-subtotal">
+        <span>Subtotal <span class="cart-line__unit">· draft prices</span></span>
+        <span class="amount" data-cart-subtotal>$0.00</span>
+      </div>
+      <p class="cart-foot-note">
+        An estimate on draft pricing only. Taxes, shipping, and availability
+        aren't set — see what ordering would require.
+      </p>
+      <button type="button" class="btn btn--block" data-boundary-open>
+        Review order
+      </button>
+    </footer>
+  </div>
+</dialog>
+
+{/* ---- Checkout boundary (fails closed, honestly) ------------------- */}
+<dialog id="boundary-dialog" class="modal" aria-labelledby="boundary-title">
+  <div class="modal__head">
+    <div>
+      <span class="overline">Checkout</span>
+      <h2 id="boundary-title">Ordering isn't enabled yet</h2>
+    </div>
+    <button type="button" class="icon-button" data-boundary-close aria-label="Close dialog">
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </div>
+
+  <p>
+    Amalano Glass is a pre-launch concept. This cart is a local planning tool —
+    it doesn't place an order, take payment, or collect any personal
+    information. Before checkout can be switched on, the following need to be
+    real and in place:
+  </p>
+
+  <ul class="checklist">
+    {ACTIVATION_REQUIREMENTS.map((item) => <li>{item}</li>)}
+  </ul>
+
+  <p>
+    Until then, your selections simply stay saved on this device. Nothing is
+    reserved, charged, or sent anywhere.
+  </p>
+
+  <div class="modal__actions">
+    <button type="button" class="btn btn--ghost" data-boundary-close>
+      Back to selections
+    </button>
+  </div>
+</dialog>
+
+<script>
+  import '../scripts/cart-ui.ts';
+</script>

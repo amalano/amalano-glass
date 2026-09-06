@@ -1,0 +1,42 @@
+---
+import { SITE } from '../data/site';
+import { href } from '../lib/url';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <a href={href('/')} class="wordmark">{SITE.wordmark}</a>
+      <p>
+        A pre-launch design study for {SITE.domain}. The catalog, prices, and
+        imagery are concept work — nothing here is for sale, and no personal or
+        payment data is collected.
+      </p>
+    </div>
+
+    <nav class="footer-col" aria-label="Explore">
+      <h2>Explore</h2>
+      <ul>
+        <li><a href={href('/')}>The set</a></li>
+        <li><a href={href('/#choosing')}>Shapes &amp; occasions</a></li>
+        <li><a href={href('/#intent')}>Design intent</a></li>
+        <li><a href={href('/#preview')}>Pre-launch note</a></li>
+      </ul>
+    </nav>
+
+    <nav class="footer-col" aria-label="About">
+      <h2>About</h2>
+      <ul>
+        <li><a href={href('/about/')}>About the concept</a></li>
+        <li><a href={href('/policies/')}>Draft policies</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="container footer-bottom">
+    <span>&copy; {year} {SITE.name}. Concept — not a live store.</span>
+    <span>No cookies, no analytics, no tracking.</span>
+  </div>
+</footer>

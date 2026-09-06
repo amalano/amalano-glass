@@ -1,0 +1,89 @@
+---
+import { SITE } from '../data/site';
+import { href } from '../lib/url';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Set for the homepage so the browser tab isn't "… — Amalano Glass". */
+  isHome?: boolean;
+  /** Discourage indexing (used by the 404 page). */
+  noindex?: boolean;
+}
+
+const { title, description = SITE.description, isHome = false, noindex = false } = Astro.props;
+
+// Astro.site is the configured origin; fall back defensively.
+const origin = Astro.site ?? new URL(SITE.origin);
+const canonical = new URL(Astro.url.pathname, origin).toString();
+const ogImage = new URL(href(SITE.ogImagePath), origin).toString();
+const fullTitle = isHome ? `${SITE.name} — ${SITE.tagline}` : `${title} — ${SITE.name}`;
+
+// JSON-LD is deliberately limited to Organization + WebSite. No Product/Offer
+// schema is emitted: the catalog is a pre-launch draft, and marking offers
+// (even as "PreOrder") would imply the set is orderable. It is not.
+const orgLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.name,
+  url: origin.origin + href('/'),
+  description: SITE.description,
+  slogan: SITE.tagline,
+  logo: new URL(href('/favicon.svg'), origin).toString(),
+};
+const siteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: origin.origin + href('/'),
+  inLanguage: SITE.locale,
+  description: SITE.description,
+};
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{
+  noindex ? (
+    <meta name="robots" content="noindex, follow" />
+  ) : (
+    <meta name="robots" content="index, follow" />
+  )
+}
+
+<meta name="theme-color" content="#f4eee2" />
+<meta name="color-scheme" content="light" />
+
+<link rel="icon" href={href('/favicon.ico')} sizes="32x32" />
+<link rel="icon" type="image/svg+xml" href={href('/favicon.svg')} />
+<link rel="apple-touch-icon" href={href('/favicon.svg')} />
+<link rel="sitemap" href={href('/sitemap-index.xml')} />
+
+<!-- OpenGraph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:locale" content="en_US" />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta
+  property="og:image:alt"
+  content="Concept photograph of the Amalano Glass stemware family in warm light."
+/>
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+<script type="application/ld+json" set:html={JSON.stringify(orgLd)} is:inline />
+<script type="application/ld+json" set:html={JSON.stringify(siteLd)} is:inline />

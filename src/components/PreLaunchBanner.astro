@@ -1,0 +1,12 @@
+---
+import { PRELAUNCH_NOTE } from '../data/site';
+import { href } from '../lib/url';
+---
+
+<aside class="prelaunch" aria-label="Pre-launch status">
+  <div class="container prelaunch__inner">
+    <span class="prelaunch__tag">Pre-launch</span>
+    <span class="prelaunch__text">{PRELAUNCH_NOTE}</span>
+    <a href={href('/#preview')} class="prelaunch__link">What's needed to launch&nbsp;&rarr;</a>
+  </div>
+</aside>
