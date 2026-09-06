@@ -50,4 +50,14 @@ test.describe('mobile layout & touch targets', () => {
     const removeBox = await page.locator('[data-cart-remove="universal"]').boundingBox();
     expect(removeBox!.height).toBeGreaterThanOrEqual(43.5);
   });
+
+  test('persistent navigation links meet the 44px target minimum', async ({ page }) => {
+    await meetsTouchTarget(page.locator('.prelaunch a'));
+    await meetsTouchTarget(page.locator('.wordmark').first());
+
+    const footerLinks = page.locator('.footer-col a');
+    for (let index = 0; index < (await footerLinks.count()); index += 1) {
+      await meetsTouchTarget(footerLinks.nth(index));
+    }
+  });
 });

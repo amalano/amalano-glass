@@ -52,4 +52,32 @@ test.describe('keyboard dialog behaviour', () => {
     await expect(page.locator('#boundary-dialog')).toBeHidden();
     await expect(page.locator('#cart-dialog')).toBeVisible();
   });
+
+  test('clicking modal padding is not mistaken for the backdrop', async ({ page }) => {
+    await page.locator('[data-add-to-cart="universal"]').click();
+    await page.locator('[data-boundary-open]').click();
+
+    const boundary = page.locator('#boundary-dialog');
+    const box = await boundary.boundingBox();
+    expect(box).not.toBeNull();
+
+    await page.mouse.click(box!.x + 4, box!.y + 4);
+    await expect(boundary).toBeVisible();
+
+    await page.mouse.click(1, 1);
+    await expect(boundary).toBeHidden();
+    await expect(page.locator('#cart-dialog')).toBeVisible();
+  });
+
+  test('removing a line by typing zero keeps focus inside the cart', async ({ page }) => {
+    await page.locator('[data-add-to-cart="universal"]').click();
+    const quantity = page.locator('[data-cart-qty="universal"]');
+    await quantity.fill('0');
+    await quantity.press('Tab');
+
+    await expect(page.locator('#cart-dialog')).toBeVisible();
+    await expect(page.locator('[data-cart-empty]')).toBeVisible();
+    expect(await activeInDialog(page, 'cart-dialog')).toBe(true);
+    await expect(page.locator('#cart-dialog [data-cart-close]').first()).toBeFocused();
+  });
 });

@@ -1,5 +1,0 @@
-# Amalano Glass — pre-launch concept
-User-agent: *
-Allow: /
-
-Sitemap: https://glasses.amalano.dev/sitemap-index.xml

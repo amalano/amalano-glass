@@ -1,6 +1,7 @@
 ---
 import { SITE } from '../data/site';
 import { href } from '../lib/url';
+import { stringifyForInlineScript } from '../lib/safe-json';
 
 interface Props {
   title?: string;
@@ -85,5 +86,5 @@ const siteLd = {
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
 
-<script type="application/ld+json" set:html={JSON.stringify(orgLd)} is:inline />
-<script type="application/ld+json" set:html={JSON.stringify(siteLd)} is:inline />
+<script type="application/ld+json" set:html={stringifyForInlineScript(orgLd)} is:inline />
+<script type="application/ld+json" set:html={stringifyForInlineScript(siteLd)} is:inline />

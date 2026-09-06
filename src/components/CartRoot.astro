@@ -4,6 +4,7 @@ import { products } from '../data/catalog';
 import { productImages } from '../data/product-images';
 import { formatPrice } from '../lib/format';
 import { ACTIVATION_REQUIREMENTS } from '../data/site';
+import { stringifyForInlineScript } from '../lib/safe-json';
 
 // Build a small, optimized display payload for the client script. Only the data
 // the cart needs is exposed — no build-time deps leak into the browser bundle.
@@ -35,7 +36,7 @@ const catalogData = Object.fromEntries(entries);
   type="application/json"
   id="cart-catalog"
   is:inline
-  set:html={JSON.stringify(catalogData)}
+  set:html={stringifyForInlineScript(catalogData)}
 />
 
 {/* Screen-reader announcements for cart changes */}

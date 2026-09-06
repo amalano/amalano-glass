@@ -13,7 +13,8 @@
     "lint": "astro check",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "verify:deployment": "node scripts/verify-deployment-contract.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

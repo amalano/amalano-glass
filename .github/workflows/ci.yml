@@ -1,50 +1,104 @@
-name: CI
+name: Verify and deploy
 
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
 
-# Cancel superseded runs on the same ref.
+# Default every job to read-only repository access. The deploy job escalates only
+# the two permissions required by GitHub Pages.
+permissions:
+  contents: read
+
 concurrency:
-  group: ci-${{ github.ref }}
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run test:e2e
 
-      - name: Lint (astro check)
-        run: npm run lint
-
-      - name: Unit tests (vitest)
-        run: npm test
-
-      - name: Build
-        run: npm run build
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: End-to-end tests (Playwright)
-        run: npm run test:e2e
+      - name: Verify GitHub Pages subpath contract
+        run: |
+          SITE_ORIGIN=https://amalano.github.io SITE_BASE=/amalano-glass/ npm run build
+          rm -f dist/CNAME
+          npm run verify:deployment -- \
+            --origin=https://amalano.github.io \
+            --base=/amalano-glass/ \
+            --cname=absent
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report
+          name: playwright-report-${{ github.run_id }}
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
+
+  build-pages:
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    needs: verify
+    runs-on: ubuntu-latest
+    env:
+      # CUSTOM_DOMAIN_ACTIVE remains false until DNS and the Pages cname setting
+      # have both been verified. That keeps the staging URL functional.
+      SITE_BASE: ${{ vars.CUSTOM_DOMAIN_ACTIVE == 'true' && '/' || '/amalano-glass/' }}
+      SITE_ORIGIN: ${{ vars.CUSTOM_DOMAIN_ACTIVE == 'true' && 'https://glasses.amalano.dev' || 'https://amalano.github.io' }}
+      CNAME_EXPECTED: ${{ vars.CUSTOM_DOMAIN_ACTIVE == 'true' && 'present' || 'absent' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Omit custom-domain marker until activation
+        if: ${{ vars.CUSTOM_DOMAIN_ACTIVE != 'true' }}
+        run: rm -f dist/CNAME
+
+      - name: Verify deployment metadata and base paths
+        run: npm run verify:deployment -- --origin="$SITE_ORIGIN" --base="$SITE_BASE" --cname="$CNAME_EXPECTED"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ./dist
+
+  deploy-pages:
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    needs: build-pages
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy verified artifact
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

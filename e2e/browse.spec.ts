@@ -73,7 +73,8 @@ test.describe('browse & honest framing', () => {
     await page.goto('/policies/');
     await expect(page.locator('h1')).toContainText('none in effect yet');
     await expect(page.locator('.policy-status')).toContainText('not in effect');
-    await expect(page.locator('main')).toContainText('no cookie banner');
+    await expect(page.locator('main')).toContainText('No application or ad cookie is set');
+    await expect(page.locator('main')).toContainText('GitHub Pages logs and stores visitor IP addresses');
   });
 
   test('404 page is served for unknown routes', async ({ page }) => {

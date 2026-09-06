@@ -4,8 +4,12 @@ A public, **static Astro** storefront **concept** for `glasses.amalano.dev` — 
 design study for a small line of stemware (the Universal, the Burgundy, and the
 Coupe).
 
+- **Live verified preview:** <https://amalano.github.io/amalano-glass/>
+- **Research, viability decision, and activation plan:** [docs/decision-memo.md](docs/decision-memo.md)
+
 > **Pre-launch, and honest about it.** This is not a live store. Nothing is for
-> sale, no order can be placed, and no personal or payment data is collected. The
+> sale, no order can be placed, and the application collects no submitted or
+> payment data. GitHub Pages still processes ordinary request data. The
 > catalog, prices, and imagery are concept work — see the boundaries below.
 
 ## What's real vs. concept
@@ -22,8 +26,9 @@ Coupe).
   never syncs, and cannot check out. Checkout deliberately **fails closed** to an
   honest boundary dialog that lists exactly what must exist before ordering could
   open.
-- **No tracking.** No analytics, no ads, no cookies — and therefore no cookie
-  banner.
+- **No application tracking.** No embedded analytics, ads, or application/ad
+  cookies. GitHub Pages still logs request information, including IP addresses,
+  for security; the draft privacy notice discloses that host processing.
 
 ## Architecture
 
@@ -38,8 +43,8 @@ src/
   layouts/     BaseLayout.astro
   scripts/     cart-ui.ts (client wiring around lib/cart)
   styles/      global.css (design tokens + components)
-  pages/       index, about, policies, 404
-public/        CNAME, robots.txt, favicon, og/
+  pages/       index, about, policies, 404, generated robots.txt
+public/        CNAME, favicon, og/
 e2e/           Playwright specs
 ```
 
@@ -69,16 +74,30 @@ The first e2e run needs the browser: `npx playwright install chromium`.
 
 ## Deployment (GitHub Pages)
 
-- `.github/workflows/ci.yml` runs lint → unit tests → build → e2e on pushes and
-  PRs to `main`.
-- `.github/workflows/deploy.yml` builds and publishes `./dist` to GitHub Pages.
+- `.github/workflows/ci.yml` runs lint → unit tests → build → e2e and permits a
+  Pages deployment only after those gates pass for the same `main` SHA.
 - `public/CNAME` declares `glasses.amalano.dev`, but the deploy workflow removes
   it from the artifact and builds with `/amalano-glass/` as the base until the
   repository variable `CUSTOM_DOMAIN_ACTIVE` is exactly `true`. This keeps the
   verified pre-DNS preview available at `https://amalano.github.io/amalano-glass/`.
-- After Cloudflare DNS has a CNAME from `glasses` to `amalano.github.io`, set
-  `CUSTOM_DOMAIN_ACTIVE=true` and rerun the deploy workflow. It will build at
-  `/`, retain the CNAME file, and publish for `https://glasses.amalano.dev/`.
+- During that preview window, `SITE_ORIGIN=https://amalano.github.io` keeps the
+  canonical, OpenGraph, JSON-LD, sitemap, and generated `robots.txt` URLs aligned
+  with the URL that actually serves the site.
+- A `CNAME` file inside an Actions artifact does **not** configure a custom
+  domain by itself. After Cloudflare DNS has a CNAME from `glasses` to
+  `amalano.github.io`, associate the hostname in GitHub Pages, then activate the
+  production build and rerun the verified workflow:
 
-The integrator owns commit, review, and publication — this repository is not
-auto-committed or deployed on your behalf.
+  ```sh
+  gh api --method PUT repos/amalano/amalano-glass/pages \
+    -f cname=glasses.amalano.dev
+  gh variable set CUSTOM_DOMAIN_ACTIVE --repo amalano/amalano-glass --body true
+  gh workflow run ci.yml --repo amalano/amalano-glass --ref main
+  ```
+
+  Verify the Pages API reports `glasses.amalano.dev`, wait for DNS/TLS, then
+  fetch `https://glasses.amalano.dev/` and its assets before calling the domain
+  active. The root build retains `public/CNAME` as an additional declaration,
+  not as the configuration mechanism.
+
+The integrator owns exact-epoch review and publication.

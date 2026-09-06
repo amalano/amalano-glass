@@ -33,4 +33,16 @@ test.describe('accessibility (axe) against the production preview', () => {
     const results = await scan(page);
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
   });
+
+  test('no violations with the checkout boundary stacked over the cart', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.locator('[data-add-to-cart="universal"]').click();
+    await page.locator('[data-boundary-open]').click();
+    await expect(page.locator('#boundary-dialog')).toBeVisible();
+
+    const results = await scan(page);
+    expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+  });
 });

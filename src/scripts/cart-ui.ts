@@ -211,7 +211,15 @@ function commit(next: Cart, focusSelector?: string): void {
   saveCart(cart);
   render();
   if (focusSelector) {
-    document.querySelector<HTMLElement>(focusSelector)?.focus();
+    const focusTarget = document.querySelector<HTMLElement>(focusSelector);
+    if (focusTarget) {
+      focusTarget.focus();
+      if (focusTarget instanceof HTMLInputElement) focusTarget.select();
+    } else if (cartDialog?.open) {
+      // A typed zero removes its own quantity input. Keep focus in the open
+      // modal instead of allowing it to fall back to the document body.
+      cartDialog.querySelector<HTMLElement>('[data-cart-close]')?.focus();
+    }
   }
 }
 
@@ -266,9 +274,18 @@ document.addEventListener('keydown', (event) => {
 });
 
 for (const dialog of [cartDialog, boundaryDialog]) {
-  // Close when the backdrop (not the panel contents) is clicked.
+  // Native <dialog> reports a backdrop click with the dialog itself as the
+  // target. Check coordinates as well so clicks on visible dialog padding do
+  // not accidentally dismiss the panel.
   dialog?.addEventListener('click', (event) => {
-    if (event.target === dialog) dialog.close();
+    if (event.target !== dialog) return;
+    const rect = dialog.getBoundingClientRect();
+    const isBackdrop =
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom;
+    if (isBackdrop) dialog.close();
   });
 }
 

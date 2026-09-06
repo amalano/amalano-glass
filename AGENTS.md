@@ -29,5 +29,5 @@ Public, static Astro storefront concept for `glasses.amalano.dev`.
 - `npm run lint`, `npm test`, `npm run build`, and `npm run test:e2e` must exist and pass.
 - Vitest coverage for cart calculations/state normalization and draft catalog invariants.
 - Playwright Chromium tests for primary browse/cart/boundary flow, keyboard dialog behavior, mobile overflow/touch targets, reduced motion, and axe scan against production preview.
-- CI on pushes/PRs and GitHub Pages deploy workflow. Include `public/CNAME` for `glasses.amalano.dev`, but Pages should remain usable at its GitHub URL until DNS is configured.
+- CI on pushes/PRs and a same-SHA, verification-gated GitHub Pages deployment. `public/CNAME` is only an artifact declaration; the custom hostname must also be configured through the GitHub Pages API after DNS is ready. Pages should remain usable at its GitHub project URL until that activation gate closes.
 - Do not commit or push; the integrator owns exact-epoch review and publication.

@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 // Canonical production origin (custom domain). Used for canonical URLs,
 // absolute OG tags, and the generated sitemap.
-const SITE = 'https://glasses.amalano.dev';
+const SITE = process.env.SITE_ORIGIN || 'https://glasses.amalano.dev';
 
 // Default to the domain root. The build stays portable: set SITE_BASE (e.g.
 // "/amalano-glass/") to serve from a GitHub Pages project subpath before DNS
