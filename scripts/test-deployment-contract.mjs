@@ -49,19 +49,23 @@ try {
     '<img srcset="missing-relative-image.webp 320w" alt="">',
   );
   expectRejected(
-    'a relative application-JSON asset',
-    '<script type="application/json">{"thumbnail":"missing-relative-thumbnail.webp"}</script>',
+    'the production cart img field',
+    '<script type="application/json">{"img":"missing-relative-cart-image.webp"}</script>',
   );
   expectRejected(
     'an encoded traversal target',
     `<a href="${base}%2e%2e/package.json">escape</a>`,
+  );
+  expectRejected(
+    'an encoded traversal in the production cart img field',
+    `<script type="application/json">{"img":"${base}%2e%2e/package.json"}</script>`,
   );
   console.log(
     JSON.stringify({
       status: 'PASS',
       origin,
       base,
-      probes: 5,
+      probes: 6,
       authenticArtifact: 'accepted',
       mutations: 'rejected',
     }),

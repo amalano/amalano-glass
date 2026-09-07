@@ -100,7 +100,7 @@ function assertPublicTarget(value, sourceFile) {
   }
 }
 
-const JSON_REFERENCE_KEY = /(?:url|uri|href|src|image|logo|thumbnail|icon|sameAs)$/i;
+const JSON_REFERENCE_KEY = /(?:url|uri|href|src|img|image|logo|thumbnail|icon|sameAs)$/i;
 
 function assertJsonReferences(value, sourceFile, key = '') {
   if (typeof value === 'string') {
