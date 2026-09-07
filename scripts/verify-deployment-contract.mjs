@@ -78,6 +78,20 @@ function assertPublicTarget(value, sourceFile) {
   }
 }
 
+function assertJsonReferences(value, sourceFile) {
+  if (typeof value === 'string') {
+    assertPublicTarget(value, sourceFile);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) assertJsonReferences(item, sourceFile);
+    return;
+  }
+  if (value && typeof value === 'object') {
+    for (const item of Object.values(value)) assertJsonReferences(item, sourceFile);
+  }
+}
+
 const htmlFiles = filesUnder(root).filter((file) => file.endsWith('.html'));
 if (htmlFiles.length === 0) throw new Error('No generated HTML files found');
 
@@ -105,6 +119,15 @@ for (const file of htmlFiles) {
   }
   for (const match of content.matchAll(/https?:\/\/[^"'\s<>]+/g)) {
     assertPublicTarget(match[0], file);
+  }
+  for (const match of content.matchAll(
+    /<script\b[^>]*\btype=["']application\/(?:ld\+)?json["'][^>]*>([\s\S]*?)<\/script>/g,
+  )) {
+    try {
+      assertJsonReferences(JSON.parse(match[1]), file);
+    } catch (error) {
+      throw new Error(`${label} contains invalid or unsafe inline JSON`, { cause: error });
+    }
   }
 }
 

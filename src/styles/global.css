@@ -141,8 +141,8 @@ ol {
 }
 
 /* Progressive enhancement: JS-only controls (cart, add-to-cart) stay hidden
-   until the script boots. The inline head script adds `.js` to <html> before
-   paint, so there is no flash. Reveal rules are element-specific so each control
+   until the cart module has initialized successfully. Reveal rules are
+   element-specific so each control
    is restored to its intended `display` value (a generic `revert` cannot).
    The `.no-js-note` fallback shows only when JavaScript is unavailable. */
 html:not(.js) .cart-button,
@@ -1102,13 +1102,11 @@ dialog::backdrop {
 @keyframes drawer-in {
   from {
     transform: translateX(1.5rem);
-    opacity: 0;
   }
 }
 @keyframes modal-in {
   from {
     transform: translateY(0.75rem);
-    opacity: 0;
   }
 }
 @keyframes fade-in {

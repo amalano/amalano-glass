@@ -19,6 +19,26 @@ test.describe('browse & honest framing', () => {
     await context.close();
   });
 
+  test('blocked cart module leaves the honest fallback instead of dead controls', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.route('**/_astro/*.js', (route) => route.abort());
+    await page.goto('/');
+
+    await expect(page.locator('html')).not.toHaveClass(/\bjs\b/);
+    await expect(page.locator('[data-cart-open]')).toBeHidden();
+    for (const button of await page.locator('[data-add-to-cart]').all()) {
+      await expect(button).toBeHidden();
+    }
+    for (const note of await page.locator('.no-js-note').all()) {
+      await expect(note).toBeVisible();
+    }
+
+    await context.close();
+  });
+
   test('homepage renders hero, the three sets, and comparison guidance', async ({ page }) => {
     await page.goto('/');
 

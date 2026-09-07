@@ -387,3 +387,5 @@ window.addEventListener('storage', (event) => {
 });
 
 render();
+// Reveal interactive controls only after state, rendering, and every handler are ready.
+document.documentElement.classList.add('js');

@@ -27,10 +27,6 @@ const { title = SITE.name, description, isHome = false, noindex = false } = Astr
       isHome={isHome}
       noindex={noindex}
     />
-    {/* Enable JS-only affordances before first paint — no flash of a dead button. */}
-    <script is:inline>
-      document.documentElement.classList.add('js');
-    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
