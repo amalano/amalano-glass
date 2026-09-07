@@ -1,6 +1,24 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('browse & honest framing', () => {
+  test('no-JavaScript fallback hides controls that cannot work', async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    await page.goto('/');
+
+    await expect(page.locator('[data-cart-open]')).toBeHidden();
+    await expect(page.locator('[data-add-to-cart]')).toHaveCount(3);
+    for (const button of await page.locator('[data-add-to-cart]').all()) {
+      await expect(button).toBeHidden();
+    }
+    await expect(page.locator('.no-js-note')).toHaveCount(3);
+    for (const note of await page.locator('.no-js-note').all()) {
+      await expect(note).toBeVisible();
+    }
+
+    await context.close();
+  });
+
   test('homepage renders hero, the three sets, and comparison guidance', async ({ page }) => {
     await page.goto('/');
 

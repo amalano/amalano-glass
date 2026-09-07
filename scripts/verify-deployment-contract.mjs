@@ -45,13 +45,34 @@ function routeForHtml(file) {
   return path;
 }
 
-function assertLocalTargetExists(value, sourceFile) {
-  if (!value.startsWith(base)) return;
-  const withoutSuffix = value.slice(base.length).split(/[?#]/, 1)[0];
+const publicOrigin = new URL(origin).origin;
+
+function assertPublicTarget(value, sourceFile) {
+  let rootedValue;
+  if (value.startsWith('/')) {
+    rootedValue = value;
+  } else if (/^https?:\/\//.test(value)) {
+    const url = new URL(value);
+    if (url.origin !== publicOrigin) return;
+    rootedValue = `${url.pathname}${url.search}${url.hash}`;
+  } else {
+    return;
+  }
+
+  if (!rootedValue.startsWith(base)) {
+    throw new Error(
+      `${relative(root, sourceFile)} contains URL outside base ${base}: ${value}`,
+    );
+  }
+
+  const withoutSuffix = rootedValue.slice(base.length).split(/[?#]/, 1)[0];
   if (!withoutSuffix) return;
 
   const target = resolve(root, withoutSuffix);
   const candidates = [target, resolve(target, 'index.html')];
+  if (withoutSuffix.endsWith('/')) {
+    candidates.push(resolve(root, `${withoutSuffix.slice(0, -1)}.html`));
+  }
   if (!candidates.some(existsSync)) {
     throw new Error(`${relative(root, sourceFile)} references missing local target ${value}`);
   }
@@ -71,13 +92,19 @@ for (const file of htmlFiles) {
     throw new Error(`${label} leaks inactive origin ${forbiddenOrigin}`);
   }
 
-  for (const match of content.matchAll(/(?:href|src)="([^"]+)"/g)) {
-    const value = match[1];
-    if (!value.startsWith('/')) continue;
-    if (!value.startsWith(base)) {
-      throw new Error(`${label} contains root-relative URL outside base ${base}: ${value}`);
+  // Validate ordinary links/images, every responsive image candidate, and
+  // same-origin absolute URLs embedded in metadata or JSON-LD.
+  for (const match of content.matchAll(/(?:href|src)=["']([^"']+)["']/g)) {
+    assertPublicTarget(match[1], file);
+  }
+  for (const match of content.matchAll(/srcset=["']([^"']+)["']/g)) {
+    for (const candidate of match[1].split(',')) {
+      const value = candidate.trim().split(/\s+/, 1)[0];
+      if (value) assertPublicTarget(value, file);
     }
-    assertLocalTargetExists(value, file);
+  }
+  for (const match of content.matchAll(/https?:\/\/[^"'\s<>]+/g)) {
+    assertPublicTarget(match[0], file);
   }
 }
 

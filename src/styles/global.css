@@ -145,8 +145,8 @@ ol {
    paint, so there is no flash. Reveal rules are element-specific so each control
    is restored to its intended `display` value (a generic `revert` cannot).
    The `.no-js-note` fallback shows only when JavaScript is unavailable. */
-.cart-button,
-.js-add {
+html:not(.js) .cart-button,
+html:not(.js) .js-add {
   display: none;
 }
 .js .cart-button {
