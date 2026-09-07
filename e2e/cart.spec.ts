@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { sitePath } from './server';
 
 test.describe('cart flow', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
     // Start from a clean slate regardless of prior runs.
     await page.evaluate(() => localStorage.clear());
     await page.reload();

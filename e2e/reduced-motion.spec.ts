@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { sitePath } from './server';
 
 test.use({ reducedMotion: 'reduce' });
 
 test.describe('reduced motion', () => {
   test('honours the preference and stays fully functional', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
     await page.evaluate(() => localStorage.clear());
     await page.reload();
 

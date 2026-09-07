@@ -48,47 +48,73 @@ function routeForHtml(file) {
 const publicOrigin = new URL(origin).origin;
 
 function assertPublicTarget(value, sourceFile) {
-  let rootedValue;
-  if (value.startsWith('/')) {
-    rootedValue = value;
-  } else if (/^https?:\/\//.test(value)) {
-    const url = new URL(value);
-    if (url.origin !== publicOrigin) return;
-    rootedValue = `${url.pathname}${url.search}${url.hash}`;
-  } else {
-    return;
+  if (!value || value.startsWith('#')) return;
+
+  const sourceUrl = new URL(routeForHtml(sourceFile), publicRoot);
+  let url;
+  try {
+    url = new URL(value, sourceUrl);
+  } catch (error) {
+    throw new Error(`${relative(root, sourceFile)} contains invalid URL ${value}`, {
+      cause: error,
+    });
   }
 
-  if (!rootedValue.startsWith(base)) {
+  if (['mailto:', 'tel:'].includes(url.protocol)) return;
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    throw new Error(
+      `${relative(root, sourceFile)} contains disallowed URL protocol ${url.protocol}: ${value}`,
+    );
+  }
+  if (url.origin !== publicOrigin) return;
+
+  if (!url.pathname.startsWith(base)) {
     throw new Error(
       `${relative(root, sourceFile)} contains URL outside base ${base}: ${value}`,
     );
   }
 
-  const withoutSuffix = rootedValue.slice(base.length).split(/[?#]/, 1)[0];
-  if (!withoutSuffix) return;
+  let publicPath;
+  try {
+    publicPath = decodeURIComponent(url.pathname.slice(base.length));
+  } catch (error) {
+    throw new Error(`${relative(root, sourceFile)} contains invalid URL encoding ${value}`, {
+      cause: error,
+    });
+  }
+  if (!publicPath) return;
 
-  const target = resolve(root, withoutSuffix);
+  const target = resolve(root, publicPath);
+  if (target !== root && !target.startsWith(`${root}${sep}`)) {
+    throw new Error(
+      `${relative(root, sourceFile)} resolves outside deployment artifact: ${value}`,
+    );
+  }
+
   const candidates = [target, resolve(target, 'index.html')];
-  if (withoutSuffix.endsWith('/')) {
-    candidates.push(resolve(root, `${withoutSuffix.slice(0, -1)}.html`));
+  if (publicPath.endsWith('/')) {
+    candidates.push(resolve(root, `${publicPath.slice(0, -1)}.html`));
   }
   if (!candidates.some(existsSync)) {
     throw new Error(`${relative(root, sourceFile)} references missing local target ${value}`);
   }
 }
 
-function assertJsonReferences(value, sourceFile) {
+const JSON_REFERENCE_KEY = /(?:url|uri|href|src|image|logo|thumbnail|icon|sameAs)$/i;
+
+function assertJsonReferences(value, sourceFile, key = '') {
   if (typeof value === 'string') {
-    assertPublicTarget(value, sourceFile);
+    if (JSON_REFERENCE_KEY.test(key)) assertPublicTarget(value, sourceFile);
     return;
   }
   if (Array.isArray(value)) {
-    for (const item of value) assertJsonReferences(item, sourceFile);
+    for (const item of value) assertJsonReferences(item, sourceFile, key);
     return;
   }
   if (value && typeof value === 'object') {
-    for (const item of Object.values(value)) assertJsonReferences(item, sourceFile);
+    for (const [childKey, item] of Object.entries(value)) {
+      assertJsonReferences(item, sourceFile, childKey);
+    }
   }
 }
 

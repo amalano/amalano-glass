@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "verify:deployment": "node scripts/verify-deployment-contract.mjs"
+    "verify:deployment": "node scripts/verify-deployment-contract.mjs",
+    "test:deployment": "node scripts/test-deployment-contract.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

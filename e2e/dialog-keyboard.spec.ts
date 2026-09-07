@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { sitePath } from './server';
 
 function activeInDialog(page: import('@playwright/test').Page, id: string) {
   return page.evaluate((dialogId) => {
@@ -9,7 +10,7 @@ function activeInDialog(page: import('@playwright/test').Page, id: string) {
 
 test.describe('keyboard dialog behaviour', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
     await page.evaluate(() => localStorage.clear());
     await page.reload();
   });

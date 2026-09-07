@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { sitePath } from './server';
 import AxeBuilder from '@axe-core/playwright';
 
 // WCAG 2.0/2.1 level A & AA — the conformance target stated in the brief.
@@ -11,20 +12,20 @@ async function scan(page: import('@playwright/test').Page) {
 test.describe('accessibility (axe) against the production preview', () => {
   for (const path of ['/', '/about/', '/policies/']) {
     test(`no WCAG A/AA violations on ${path}`, async ({ page }) => {
-      await page.goto(path);
+      await page.goto(sitePath(path));
       const results = await scan(page);
       expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
     });
   }
 
   test('no violations on the 404 page', async ({ page }) => {
-    await page.goto('/no-such-page/');
+    await page.goto(sitePath('/no-such-page/'));
     const results = await scan(page);
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
   });
 
   test('no violations with the cart drawer open', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
     await page.evaluate(() => localStorage.clear());
     await page.reload();
     await page.locator('[data-add-to-cart="universal"]').click();
@@ -35,7 +36,7 @@ test.describe('accessibility (axe) against the production preview', () => {
   });
 
   test('no violations with the checkout boundary stacked over the cart', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
     await page.evaluate(() => localStorage.clear());
     await page.reload();
     await page.locator('[data-add-to-cart="universal"]').click();

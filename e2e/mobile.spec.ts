@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { sitePath } from './server';
 
 test.use({ viewport: { width: 360, height: 740 } });
 
@@ -19,7 +20,7 @@ async function meetsTouchTarget(locator: import('@playwright/test').Locator, min
 
 test.describe('mobile layout & touch targets', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
     await page.evaluate(() => localStorage.clear());
     await page.reload();
   });
@@ -27,10 +28,10 @@ test.describe('mobile layout & touch targets', () => {
   test('no horizontal overflow on key pages', async ({ page }) => {
     expect(await hasNoHorizontalOverflow(page)).toBe(true);
 
-    await page.goto('/about/');
+    await page.goto(sitePath('/about/'));
     expect(await hasNoHorizontalOverflow(page)).toBe(true);
 
-    await page.goto('/policies/');
+    await page.goto(sitePath('/policies/'));
     expect(await hasNoHorizontalOverflow(page)).toBe(true);
   });
 

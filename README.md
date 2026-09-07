@@ -68,14 +68,18 @@ npm test             # vitest — cart logic + catalog invariants
 npm run build        # static build to ./dist
 npm run test:e2e     # Playwright: browse/cart/boundary, keyboard, mobile,
                      # reduced motion, and an axe (WCAG A/AA) scan of the preview
+npm run verify:deployment # validate emitted URLs and referenced files in ./dist
+npm run test:deployment   # mutation-probe relative, responsive, JSON, and traversal targets
 ```
 
 The first e2e run needs the browser: `npx playwright install chromium`.
 
 ## Deployment (GitHub Pages)
 
-- `.github/workflows/ci.yml` runs lint → unit tests → build → e2e and permits a
-  Pages deployment only after those gates pass for the same `main` SHA.
+- `.github/workflows/ci.yml` runs lint → unit tests → build → e2e in both the
+  root/custom-domain and GitHub project-subpath modes. It also runs positive and
+  adversarial deployment-contract checks, and permits a Pages deployment only
+  after those gates pass for the same `main` SHA.
 - `public/CNAME` declares `glasses.amalano.dev`, but the deploy workflow removes
   it from the artifact and builds with `/amalano-glass/` as the base until the
   repository variable `CUSTOM_DOMAIN_ACTIVE` is exactly `true`. This keeps the

@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { PREVIEW_PORT, PREVIEW_URL } from './server';
+import { PREVIEW_BASE, PREVIEW_PORT, PREVIEW_URL } from './server';
 
 async function waitForServer(url: string, timeoutMs: number): Promise<void> {
   const start = Date.now();
@@ -29,5 +29,5 @@ export default async function globalSetup(): Promise<void> {
     { stdio: 'inherit' },
   );
 
-  await waitForServer(`${PREVIEW_URL}/`, 30_000);
+  await waitForServer(`${PREVIEW_URL}${PREVIEW_BASE}`, 30_000);
 }

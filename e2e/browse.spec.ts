@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { PUBLIC_ROOT, sitePath } from './server';
 
 test.describe('browse & honest framing', () => {
   test('no-JavaScript fallback hides controls that cannot work', async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });
     const page = await context.newPage();
-    await page.goto('/');
+    await page.goto(sitePath('/'));
 
     await expect(page.locator('[data-cart-open]')).toBeHidden();
     await expect(page.locator('[data-add-to-cart]')).toHaveCount(3);
@@ -25,7 +26,7 @@ test.describe('browse & honest framing', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.route('**/_astro/*.js', (route) => route.abort());
-    await page.goto('/');
+    await page.goto(sitePath('/'));
 
     await expect(page.locator('html')).not.toHaveClass(/\bjs\b/);
     await expect(page.locator('[data-cart-open]')).toBeHidden();
@@ -40,7 +41,7 @@ test.describe('browse & honest framing', () => {
   });
 
   test('homepage renders hero, the three sets, and comparison guidance', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
 
     await expect(page).toHaveTitle(/Amalano Glass/);
     await expect(page.locator('h1')).toContainText('considered set of three');
@@ -58,7 +59,7 @@ test.describe('browse & honest framing', () => {
   });
 
   test('pre-launch truth is visible and nothing links to a fake checkout', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
 
     await expect(page.locator('.prelaunch')).toContainText('Pre-launch');
     await expect(page.locator('#preview')).toContainText("what it would take to open");
@@ -79,11 +80,11 @@ test.describe('browse & honest framing', () => {
   test('SEO essentials: canonical, description, OG image, and JSON-LD without offers', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto(sitePath('/'));
 
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       'href',
-      'https://glasses.amalano.dev/',
+      PUBLIC_ROOT,
     );
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
@@ -105,12 +106,12 @@ test.describe('browse & honest framing', () => {
   });
 
   test('secondary pages exist with honest, draft language', async ({ page }) => {
-    await page.goto('/about/');
+    await page.goto(sitePath('/about/'));
     await expect(page.locator('h1')).toContainText('kept honest');
     await expect(page.locator('main')).toContainText('AI-generated concept photography');
     await expect(page.locator('main')).toContainText('pre-launch note lists the full set');
 
-    await page.goto('/policies/');
+    await page.goto(sitePath('/policies/'));
     await expect(page.locator('h1')).toContainText('none in effect yet');
     await expect(page.locator('.policy-status')).toContainText('not in effect');
     await expect(page.locator('main')).toContainText('No application or ad cookie is set');
@@ -119,7 +120,7 @@ test.describe('browse & honest framing', () => {
   });
 
   test('404 page is served for unknown routes', async ({ page }) => {
-    const res = await page.goto('/does-not-exist/');
+    const res = await page.goto(sitePath('/does-not-exist/'));
     expect(res?.status()).toBe(404);
     await expect(page.locator('h1')).toContainText("isn't set");
   });
